@@ -3,6 +3,7 @@ Author: BIHEL Simon, De-Moor Florestan
 Institute: ENS Rennes
 *)
 
+#load "graphics.cma";;
 open Graphics;;
 
 (* Close any possible open window *)
