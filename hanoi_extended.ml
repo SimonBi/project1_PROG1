@@ -1,3 +1,4 @@
+#load "graphics.cma"
 open Graphics;;
 open_graph " 1000*600";;
 
