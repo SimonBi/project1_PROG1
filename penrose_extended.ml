@@ -16,13 +16,10 @@ open_graph " 1000*1000";;
 
 let phi = (1. +. sqrt(5.)) /. 2.;;
 type gold_triangle = Obtuse | Acute;;
-
 let pi = 4. *. atan (1.);;
-let y = sin(pi /. 5.);;
-let points = [|(0, 0); (int_of_float(150. *. phi), int_of_float(300. *. y));
-               (int_of_float(300. *. phi),0)|];;
 
-let wait_each_triangle =false;;
+
+let wait_each_triangle = false;;
 let nb_generations = 7;;
 let show_each_generation = true;;
 let robinson_single_triangle = true;;
@@ -85,6 +82,9 @@ let rec divide generation points t_type =
 
 
 if robinson_single_triangle then 
+  let y = sin(pi /. 5.) in
+  let points = [|(0, 0); (int_of_float(150. *. phi), int_of_float(300. *. y));
+                 (int_of_float(300. *. phi),0)|] in
   if show_each_generation then 
     for i = 0 to nb_generations do
       divide i points Obtuse;
@@ -92,6 +92,8 @@ if robinson_single_triangle then
     done
   else divide nb_generations points Obtuse;;
 
+if robinson_wheel_triangles then
+  ();;
 
 (** Ask to exit. *)
 let quit_loop = ref false in
