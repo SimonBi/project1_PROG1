@@ -22,8 +22,8 @@ let pi = 4. *. atan (1.);;
 let wait_each_triangle = false;;
 let nb_generations = 7;;
 let show_each_generation = true;;
-let robinson_single_triangle = true;;
-let robinson_wheel_triangles = false;;
+let robinson_single_triangle = false;;
+let robinson_wheel_triangles = true;;
 
 
 (** Sleep function. *)
@@ -93,8 +93,35 @@ if robinson_single_triangle then
     done
   else divide nb_generations points Obtuse;;
 
-if robinson_wheel_triangles then
-  ();;
+
+(** Build a wheel of acute triangles and call divide for each of them. *)
+if robinson_wheel_triangles then begin
+  let triangles = [];
+  let zoom = 100. in begin
+    for i = 1 to 5 do
+      let fi = float_of_int i in
+      let point1 = (int_of_float(500. +. (zoom *. cos((fi -. 1.)  *.  pi /. 5.))),
+                    int_of_float(500. +. (zoom *. sin((fi -. 1.)  *.  pi /. 5.))))
+      and point2 = (int_of_float(500. +. (zoom *. cos(fi  *.  pi /. 5.))),
+                    int_of_float(500. +. (zoom *. sin(fi  *.  pi /. 5.)))) in
+      begin
+        if i mod 2 = 0 then 
+          let triangles = triangles @ [[|(500, 500); point1; point2|];
+                                        [|(500, 500); (-1 * (fst point1), -1 * (snd point1)); 
+                                          (-1 * (fst point2), -1 * (snd point2))|]]
+        else
+          let triangles = triangles @ [[|(500, 500); point2; point1|];
+                                        [|(500, 500); (-1 * (fst point2), -1 * (snd point2)); 
+                                          (-1 * (fst point1), -1 * (snd point1))|]]
+      end
+    done;
+
+    for p = 0 to list_length triangles do
+      divide nb_generations triangles.(p) Acute
+    done
+  end
+  end;;
+
 
 (** Ask to exit. *)
 let quit_loop = ref false in
