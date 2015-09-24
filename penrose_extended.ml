@@ -28,7 +28,8 @@ let robinson_wheel_triangles = false;;
 
 (** Sleep function. *)
 let minisleep sec =
-  ignore (Unix.select [] [] [] sec);;
+  try ignore (Unix.select [] [] [] sec) with
+    | _ -> print_string "Error for sleep on OS X.\n";;
 
 
 (** Draw a triangle. *)
