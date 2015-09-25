@@ -23,6 +23,7 @@ let points = [|(0, 0); (int_of_float(150. *. phi), int_of_float(300. *. y)); (in
 (** Draw a triangle. *)
 let draw points t_type =
   if t_type = Obtuse then set_color yellow else set_color blue;
+  draw_poly points;
   fill_poly points;;
 
 

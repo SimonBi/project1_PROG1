@@ -117,7 +117,8 @@ if robinson_wheel_triangles then begin
     done;
 
     while !triangles <> [] do
-      divide nb_generations (List.hd !triangles) Acute
+      divide nb_generations (List.hd !triangles) Acute;
+      triangles := (List.tl !triangles)
     done
   end
   end;;
