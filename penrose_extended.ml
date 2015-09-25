@@ -96,7 +96,7 @@ if robinson_single_triangle then
 
 (** Build a wheel of acute triangles and call divide for each of them. *)
 if robinson_wheel_triangles then begin
-  let triangles = [];
+  let triangles = ref [] in
   let zoom = 100. in begin
     for i = 1 to 5 do
       let fi = float_of_int i in
@@ -106,18 +106,18 @@ if robinson_wheel_triangles then begin
                     int_of_float(500. +. (zoom *. sin(fi  *.  pi /. 5.)))) in
       begin
         if i mod 2 = 0 then 
-          let triangles = triangles @ [[|(500, 500); point1; point2|];
+          triangles := ( !triangles) @ [[|(500, 500); point1; point2|];
                                         [|(500, 500); (-1 * (fst point1), -1 * (snd point1)); 
                                           (-1 * (fst point2), -1 * (snd point2))|]]
         else
-          let triangles = triangles @ [[|(500, 500); point2; point1|];
+          triangles := ( !triangles) @ [[|(500, 500); point2; point1|];
                                         [|(500, 500); (-1 * (fst point2), -1 * (snd point2)); 
                                           (-1 * (fst point1), -1 * (snd point1))|]]
       end
     done;
 
-    for p = 0 to list_length triangles do
-      divide nb_generations triangles.(p) Acute
+    while !triangles <> [] do
+      divide nb_generations (List.hd !triangles) Acute
     done
   end
   end;;
