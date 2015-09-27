@@ -13,14 +13,15 @@ open Graphics;;
 
 close_graph();;
 open_graph " 1000*1000";;
-
+resize_window 600 600;;
 let phi = (1. +. sqrt(5.)) /. 2.;;
 type gold_triangle = Obtuse | Acute;;
 let pi = 4. *. atan (1.);;
 
 
+(** Variables that can be changed. *)
 let wait_each_triangle = false;;
-let nb_generations = 7;;
+let nb_generations = 5;;
 let show_each_generation = true;;
 let robinson_single_triangle = false;;
 let robinson_wheel_triangles = true;;
@@ -32,11 +33,29 @@ let minisleep sec =
     | _ -> print_string "Error for sleep on OS X.\n";;
 
 
+(** Extract the values of a couple *)
+let extract t =
+  (fst t) (snd t);;
+
 (** Draw a triangle. *)
 let draw points t_type =
-  if t_type = Obtuse then set_color yellow else set_color blue;
+  moveto (fst points.(0)) (snd points.(0));
+  set_color black;
+  set_line_width 2;
+  if t_type = Obtuse then begin
+    lineto (fst points.(1)) (snd points.(1));
+    lineto (fst points.(2)) (snd points.(2));
+    set_color yellow;
+    lineto (fst points.(0)) (snd points.(0))
+  end
+  else begin
+    moveto (fst points.(2)) (snd points.(2));
+    lineto (fst points.(0)) (snd points.(0));
+    lineto (fst points.(1)) (snd points.(1));
+    set_color blue;
+    lineto (fst points.(2)) (snd points.(2))
+  end;
   fill_poly points;
-  draw_poly points;
   if wait_each_triangle then  minisleep 0.05;;
 
 
@@ -96,28 +115,31 @@ if robinson_single_triangle then
 
 (** Build a wheel of acute triangles and call divide for each of them. *)
 if robinson_wheel_triangles then begin
-  let triangles = ref [] in
-  let zoom = 100. in begin
+  let t_type = Acute
+  and triangles = ref [] in
+  let zoom = 250. in begin
     for i = 1 to 5 do
-      let fi = float_of_int i in
-      let point1 = (int_of_float(500. +. (zoom *. cos((fi -. 1.)  *.  pi /. 5.))),
-                    int_of_float(500. +. (zoom *. sin((fi -. 1.)  *.  pi /. 5.))))
-      and point2 = (int_of_float(500. +. (zoom *. cos(fi  *.  pi /. 5.))),
-                    int_of_float(500. +. (zoom *. sin(fi  *.  pi /. 5.)))) in
+      let fi = float_of_int i 
+      and center = 300. in
+      let intC = int_of_float center in
+      let point1 = (int_of_float(center +. (zoom *. cos((fi -. 1.)  *.  pi /. 5.))),
+                    int_of_float(center +. (zoom *. sin((fi -. 1.)  *.  pi /. 5.))))
+      and point2 = (int_of_float(center +. (zoom *. cos(fi  *.  pi /. 5.))),
+                    int_of_float(center +. (zoom *. sin(fi  *.  pi /. 5.)))) in
       begin
         if i mod 2 = 0 then 
-          triangles := ( !triangles) @ [[|(500, 500); point1; point2|];
-                                        [|(500, 500); (-1 * (fst point1), -1 * (snd point1)); 
-                                          (-1 * (fst point2), -1 * (snd point2))|]]
+          triangles := ( !triangles) @ [[|(intC, intC); point1; point2|];
+                                        [|(intC, intC); (-1 * (fst point2) + 2 * intC, -1 * (snd point2) + 2 * intC); 
+                                          (-1 * (fst point1) + 2 * intC, -1 * (snd point1) + 2 * intC)|]]
         else
-          triangles := ( !triangles) @ [[|(500, 500); point2; point1|];
-                                        [|(500, 500); (-1 * (fst point2), -1 * (snd point2)); 
-                                          (-1 * (fst point1), -1 * (snd point1))|]]
+          triangles := ( !triangles) @ [[|(intC, intC); point2; point1|];
+                                        [|(intC, intC); (-1 * (fst point1) + 2 * intC, -1 * (snd point1) + 2 * intC); 
+                                          (-1 * (fst point2) + 2 * intC, -1 * (snd point2) + 2 * intC)|]]
       end
     done;
 
     while !triangles <> [] do
-      divide nb_generations (List.hd !triangles) Acute;
+      divide nb_generations (List.hd !triangles) t_type;
       triangles := (List.tl !triangles)
     done
   end
