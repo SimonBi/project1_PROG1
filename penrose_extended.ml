@@ -25,9 +25,18 @@ let wait_each_triangle = false;;
 let nb_generations = 6;;
 let show_each_generation = true;;
 let robinson_single_triangle = false;;
-let robinson_wheel_triangles = true;;
-let type_wheel_triangles = Obtuse;; 
+let robinson_wheel_triangles = not robinson_single_triangle;;
+let type_wheel_triangles = Obtuse;;
     (* Acute triangles create a wheel, obtuse create a star. *)
+let reverse_triangles = false;;
+
+
+let reverse_triangle t t_type = match reverse_triangles with
+  |true -> if t_type = Acute then
+             [|t.(0); t.(2); t.(1)|]
+           else
+             [|t.(2); t.(1); t.(0)|]
+  |false -> t;;
 
 
 (** Sleep function. *)
@@ -39,6 +48,7 @@ let minisleep sec =
 (** Extract the values of a couple *)
 let extract t =
   (fst t) (snd t);;
+
 
 (** Draw a triangle. *)
 let draw points t_type =
@@ -108,8 +118,8 @@ let rec divide generation points t_type =
 (** Create a single obtuse triangle and call divide for it. *)
 if robinson_single_triangle then 
   let y = sin(pi /. 5.) in
-  let points = [|(0, 0); (int_of_float(150. *. phi), int_of_float(300. *. y));
-                 (int_of_float(300. *. phi),0)|] in
+  let points = reverse_triangle [|(0, 0); (int_of_float(150. *. phi), int_of_float(300. *. y));
+                 (int_of_float(300. *. phi),0)|] Obtuse in
   if show_each_generation then 
     for i = 0 to nb_generations do
       divide i points Obtuse;
@@ -186,14 +196,14 @@ if robinson_wheel_triangles then begin
       for i = 0 to nb_generations do
         let triangles_copy = ref !triangles in
         while !triangles_copy <> [] do
-          divide i (hd !triangles_copy) t_type;
+          divide i (reverse_triangle (hd !triangles_copy) t_type) t_type;
           triangles_copy := (tl !triangles_copy)
         done;
         minisleep 0.2
       done
     else
       while !triangles <> [] do
-        divide nb_generations (hd !triangles) t_type;
+        divide nb_generations (reverse_triangle (hd !triangles) t_type) t_type;
         triangles := (tl !triangles)
       done;
   end
