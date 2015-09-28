@@ -26,9 +26,11 @@ let nb_generations = 6;;
 let show_each_generation = true;;
 let robinson_single_triangle = false;;
 let robinson_wheel_triangles = not robinson_single_triangle;;
-let type_wheel_triangles = Obtuse;;
+let type_wheel_triangles = Acute;;
     (* Acute triangles create a wheel, obtuse create a star. *)
 let reverse_triangles = false;;
+let homothetic = true;;
+let general_center = 300;;
 
 
 let reverse_triangle t t_type = match reverse_triangles with
@@ -100,11 +102,22 @@ let divise points t_type =
        [|points.(0); (x, y); (xp, yp)|]|]
 
 
+let point_farther_center center point =
+  (int_of_float (center +. (float_of_int(fst point) -. center) *. phi), 
+   int_of_float (center +. (float_of_int(snd point) -. center) *. phi));;
+
+
+let zoom_triangle t center = Array.map (point_farther_center center) t;;
+
+
 (** Divide triangles recursively, creating a Penrose tiling. *)
 let rec divide generation points t_type =
   if generation = 0 then draw points t_type
   else begin
-    let new_triangles = divise points t_type in
+    let base_t = if homothetic then 
+                   zoom_triangle points (float_of_int general_center)
+                 else points in
+    let new_triangles = divise base_t t_type in
     match t_type with
     | Obtuse ->
        divide (generation-1) new_triangles.(0) Acute;
@@ -137,12 +150,12 @@ let point_closer_center point center =
 if robinson_wheel_triangles then begin
   let t_type = type_wheel_triangles
   and triangles = ref [] in
-  let zoom = 250. in begin
+  let zoom = if homothetic then 25. else 250. in begin
     (* Build the triangles of the wheel.
        For each for loop we create a triangle and it's mirror one. *)
     for i = 1 to 5 do
       let fi = float_of_int i 
-      and center = 300. in
+      and center = float_of_int general_center in
       let intC = int_of_float center in
 
       let point1 = (int_of_float(center +. (zoom *. cos((fi -. 1.)  *.  pi /. 5.))),
