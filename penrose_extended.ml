@@ -52,8 +52,12 @@ let extract t =
   (fst t) (snd t);;
 
 
+let intT_of_floatT points = Array.map (fun (x,y) -> (int_of_float x, int_of_float y)) points;;
+
+
 (** Draw a triangle. *)
-let draw points t_type =
+let draw pointsF t_type =
+  let points = intT_of_floatT pointsF in
   moveto (fst points.(0)) (snd points.(0));
   set_color black;
   set_line_width 2;
@@ -78,8 +82,8 @@ let draw points t_type =
 
 (** Divide a segment and return the point of separation. *)
 let compute_newpoint (x1, y1) (x2, y2) =
-  let x = int_of_float ((float_of_int(x2-x1)) /. phi) + x1 
-  and y = int_of_float ((float_of_int(y2-y1)) /. phi) + y1
+  let x = ((x2 -. x1) /. phi) +. x1 
+  and y = ((y2 -. y1) /. phi) +. y1
   in (x, y);; 
 
 
@@ -103,8 +107,8 @@ let divise points t_type =
 
 
 let point_farther_center center point =
-  (int_of_float (center +. (float_of_int(fst point) -. center) *. phi), 
-   int_of_float (center +. (float_of_int(snd point) -. center) *. phi));;
+  (center +. ((fst point) -. center) *. phi, 
+   center +. ((snd point) -. center) *. phi);;
 
 
 let zoom_triangle t center = Array.map (point_farther_center center) t;;
@@ -131,8 +135,8 @@ let rec divide generation points t_type =
 (** Create a single obtuse triangle and call divide for it. *)
 if robinson_single_triangle then 
   let y = sin(pi /. 5.) in
-  let points = reverse_triangle [|(0, 0); (int_of_float(150. *. phi), int_of_float(300. *. y));
-                 (int_of_float(300. *. phi),0)|] Obtuse in
+  let points = reverse_triangle [|(0., 0.); (150. *. phi, 300. *. y);
+                 (300. *. phi,0.)|] Obtuse in
   if show_each_generation then 
     for i = 0 to nb_generations do
       divide i points Obtuse;
@@ -142,8 +146,8 @@ if robinson_single_triangle then
 
 
 let point_closer_center point center = 
-  (int_of_float(center +. (float_of_int(fst point) -. center) /. phi), 
-   int_of_float(center +. (float_of_int(snd point) -. center) /. phi));;
+  (center +. ((fst point) -. center) /. phi, 
+   center +. ((snd point) -. center) /. phi);;
 
 
 (** Build a wheel of identical triangles and call divide for each of them. *)
@@ -156,50 +160,49 @@ if robinson_wheel_triangles then begin
     for i = 1 to 5 do
       let fi = float_of_int i 
       and center = float_of_int general_center in
-      let intC = int_of_float center in
 
-      let point1 = (int_of_float(center +. (zoom *. cos((fi -. 1.)  *.  pi /. 5.))),
-                    int_of_float(center +. (zoom *. sin((fi -. 1.)  *.  pi /. 5.))))
-      and point2 = (int_of_float(center +. (zoom *. cos(fi  *.  pi /. 5.))),
-                    int_of_float(center +. (zoom *. sin(fi  *.  pi /. 5.)))) in
+      let point1 = (center +. (zoom *. cos((fi -. 1.)  *.  pi /. 5.)),
+                    center +. (zoom *. sin((fi -. 1.)  *.  pi /. 5.)))
+      and point2 = (center +. (zoom *. cos(fi  *.  pi /. 5.)),
+                    center +. (zoom *. sin(fi  *.  pi /. 5.))) in
       let obtuse_point1 = point_closer_center point1 center 
       and obtuse_point2 = point_closer_center point2 center in
 
       if t_type = Acute then begin
           if i mod 2 = 0 then 
-            triangles := ( !triangles) @ [[|(intC, intC); point1; point2|];
-                                          [|(intC, intC);
-                                            (-1 * (fst point2) + 2 * intC,
-                                             -1 * (snd point2) + 2 * intC); 
-                                            (-1 * (fst point1) + 2 * intC,
-                                             -1 * (snd point1) + 2 * intC)|]]
+            triangles := ( !triangles) @ [[|(center, center); point1; point2|];
+                                          [|(center, center);
+                                            (-1. *. (fst point2) +. 2. *. center,
+                                             -1. *. (snd point2) +. 2. *. center); 
+                                            (-1. *. (fst point1) +. 2. *. center,
+                                             -1. *. (snd point1) +. 2. *. center)|]]
           else
-            triangles := ( !triangles) @ [[|(intC, intC); point2; point1|];
-                                          [|(intC, intC);
-                                            (-1 * (fst point1) + 2 * intC, 
-                                             -1 * (snd point1) + 2 * intC); 
-                                            (-1 * (fst point2) + 2 * intC, 
-                                             -1 * (snd point2) + 2 * intC)|]]
+            triangles := ( !triangles) @ [[|(center, center); point2; point1|];
+                                          [|(center, center);
+                                            (-1. *. (fst point1) +. 2. *. center, 
+                                             -1. *. (snd point1) +. 2. *. center); 
+                                            (-1. *. (fst point2) +. 2. *. center,
+                                             -1. *. (snd point2) +. 2. *. center)|]]
         end
       (* Reversing an obtuse triangle to eventually create a star 
          is a little more complicated. *)
       else begin
           if i mod 2 = 0 then 
-            triangles := ( !triangles) @ [[|(intC, intC);
+            triangles := ( !triangles) @ [[|(center, center);
                                             obtuse_point1;
                                             point2|];
-                                          [|(intC, intC);
-                                            (-1 * (fst obtuse_point2) + 2 * intC,
-                                             -1 * (snd obtuse_point2) + 2 * intC); 
-                                            (-1 * (fst point1) + 2 * intC,
-                                             -1 * (snd point1) + 2 * intC)|]]
+                                          [|(center, center);
+                                            (-1. *. (fst obtuse_point2) +. 2. *. center,
+                                             -1. *. (snd obtuse_point2) +. 2. *. center); 
+                                            (-1. *. (fst point1) +. 2. *. center,
+                                             -1. *. (snd point1) +. 2. *. center)|]]
           else
-            triangles := ( !triangles) @ [[|(intC, intC); obtuse_point2; point1|];
-                                          [|(intC, intC);
-                                            (-1 * (fst obtuse_point1) + 2 * intC, 
-                                             -1 * (snd obtuse_point1) + 2 * intC); 
-                                            (-1 * (fst point2) + 2 * intC, 
-                                             -1 * (snd point2) + 2 * intC)|]]
+            triangles := ( !triangles) @ [[|(center, center); obtuse_point2; point1|];
+                                          [|(center, center);
+                                            (-1. *. (fst obtuse_point1) +. 2. *. center,
+                                             -1. *. (snd obtuse_point1) +. 2. *. center); 
+                                            (-1. *. (fst point2) +. 2. *. center,
+                                             -1. *. (snd point2) +. 2. *. center)|]]
         
       end
     done;
