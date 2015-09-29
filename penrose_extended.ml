@@ -20,19 +20,24 @@ type gold_triangle = Obtuse | Acute;;
 let pi = 4. *. atan (1.);;
 
 
-(** Variables that can be changed. *)
+(* ===Variables that can be changed.=== *)
 let wait_each_triangle = false;;
+    (* Sleep between each triangle drawing. *)
 let nb_generations = 6;;
 let show_each_generation = true;;
+    (* Sleep between each generation. *)
 let robinson_single_triangle = false;;
 let robinson_wheel_triangles = not robinson_single_triangle;;
 let type_wheel_triangles = Acute;;
     (* Acute triangles create a wheel, obtuse create a star. *)
 let reverse_triangles = false;;
+    (* 'Rotate' the first generation triangles to have a different division. *)
 let homothetic = true;;
+    (* At each generation, the tiling is bigger if set to true. *)
 let general_center = 300;;
 
 
+(** 'Rotate' a triangle to have a different division. *)
 let reverse_triangle t t_type = match reverse_triangles with
   |true -> if t_type = Acute then
              [|t.(0); t.(2); t.(1)|]
@@ -41,18 +46,21 @@ let reverse_triangle t t_type = match reverse_triangles with
   |false -> t;;
 
 
-(** Sleep function. *)
+(** Sleep function for less than a second. *)
 let minisleep sec =
-  try ignore (Unix.select [] [] [] sec) with
+  try ignore (select [] [] [] sec) with
     | _ -> print_string "Error for sleep on OS X.\n";;
 
 
-(** Extract the values of a couple *)
+(** Extract the values of a couple. *)
 let extract t =
   (fst t) (snd t);;
 
 
-let intT_of_floatT points = Array.map (fun (x,y) -> (int_of_float x, int_of_float y)) points;;
+(** Conversion of float*float to int*int. *)
+let intT_of_floatT points = Array.map 
+                              (fun (x,y) -> (int_of_float x, int_of_float y)) 
+                              points;;
 
 
 (** Draw a triangle. *)
@@ -62,7 +70,7 @@ let draw pointsF t_type =
   set_color black;
   set_line_width 2;
   (* Only two borders of a triangle are drawn to create new shapes
-  when two triangles are side-by-side. *)
+  when two same triangles are side-by-side. *)
   if t_type = Obtuse then begin
     lineto (fst points.(1)) (snd points.(1));
     lineto (fst points.(2)) (snd points.(2));
@@ -106,12 +114,20 @@ let divise points t_type =
        [|points.(0); (x, y); (xp, yp)|]|]
 
 
+(**  Take a point away from the center like it was zooming. *)
 let point_farther_center center point =
   (center +. ((fst point) -. center) *. phi, 
    center +. ((snd point) -. center) *. phi);;
 
 
+(** Take a triangle away from the center like it was zooming. *)
 let zoom_triangle t center = Array.map (point_farther_center center) t;;
+
+
+(** Bring a point closer to the center like it was unzooming. *)
+let point_closer_center point center = 
+  (center +. ((fst point) -. center) /. phi, 
+   center +. ((snd point) -. center) /. phi);;
 
 
 (** Divide triangles recursively, creating a Penrose tiling. *)
@@ -132,6 +148,7 @@ let rec divide generation points t_type =
        divide (generation-1) new_triangles.(2) Obtuse
   end;;
 
+
 (** Create a single obtuse triangle and call divide for it. *)
 if robinson_single_triangle then 
   let y = sin(pi /. 5.) in
@@ -145,16 +162,12 @@ if robinson_single_triangle then
   else divide nb_generations points Obtuse;;
 
 
-let point_closer_center point center = 
-  (center +. ((fst point) -. center) /. phi, 
-   center +. ((snd point) -. center) /. phi);;
-
-
 (** Build a wheel of identical triangles and call divide for each of them. *)
 if robinson_wheel_triangles then begin
   let t_type = type_wheel_triangles
   and triangles = ref [] in
   let zoom = if homothetic then 25. else 250. in begin
+    
     (* Build the triangles of the wheel.
        For each for loop we create a triangle and it's mirror one. *)
     for i = 1 to 5 do
@@ -170,39 +183,39 @@ if robinson_wheel_triangles then begin
 
       if t_type = Acute then begin
           if i mod 2 = 0 then 
-            triangles := ( !triangles) @ [[|(center, center); point1; point2|];
-                                          [|(center, center);
-                                            (-1. *. (fst point2) +. 2. *. center,
-                                             -1. *. (snd point2) +. 2. *. center); 
-                                            (-1. *. (fst point1) +. 2. *. center,
-                                             -1. *. (snd point1) +. 2. *. center)|]]
+            triangles := ( !triangles) @
+                           [[|(center, center); point1; point2|];
+                            [|(center, center);
+                              (-1. *. (fst point2) +. 2. *. center,
+                               -1. *. (snd point2) +. 2. *. center); 
+                              (-1. *. (fst point1) +. 2. *. center,
+                               -1. *. (snd point1) +. 2. *. center)|]]
           else
-            triangles := ( !triangles) @ [[|(center, center); point2; point1|];
-                                          [|(center, center);
-                                            (-1. *. (fst point1) +. 2. *. center, 
-                                             -1. *. (snd point1) +. 2. *. center); 
-                                            (-1. *. (fst point2) +. 2. *. center,
-                                             -1. *. (snd point2) +. 2. *. center)|]]
+            triangles := ( !triangles) @
+                           [[|(center, center); point2; point1|];
+                            [|(center, center);
+                              (-1. *. (fst point1) +. 2. *. center, 
+                               -1. *. (snd point1) +. 2. *. center); 
+                              (-1. *. (fst point2) +. 2. *. center,
+                               -1. *. (snd point2) +. 2. *. center)|]]
         end
-      (* Reversing an obtuse triangle to eventually create a star 
-         is a little more complicated. *)
       else begin
           if i mod 2 = 0 then 
-            triangles := ( !triangles) @ [[|(center, center);
-                                            obtuse_point1;
-                                            point2|];
-                                          [|(center, center);
-                                            (-1. *. (fst obtuse_point2) +. 2. *. center,
-                                             -1. *. (snd obtuse_point2) +. 2. *. center); 
-                                            (-1. *. (fst point1) +. 2. *. center,
-                                             -1. *. (snd point1) +. 2. *. center)|]]
+            triangles := ( !triangles) @
+                           [[|(center, center); obtuse_point1; point2|];
+                            [|(center, center);
+                              (-1. *. (fst obtuse_point2) +. 2. *. center,
+                               -1. *. (snd obtuse_point2) +. 2. *. center); 
+                              (-1. *. (fst point1) +. 2. *. center,
+                               -1. *. (snd point1) +. 2. *. center)|]]
           else
-            triangles := ( !triangles) @ [[|(center, center); obtuse_point2; point1|];
-                                          [|(center, center);
-                                            (-1. *. (fst obtuse_point1) +. 2. *. center,
-                                             -1. *. (snd obtuse_point1) +. 2. *. center); 
-                                            (-1. *. (fst point2) +. 2. *. center,
-                                             -1. *. (snd point2) +. 2. *. center)|]]
+            triangles := ( !triangles) @
+                           [[|(center, center); obtuse_point2; point1|];
+                            [|(center, center);
+                              (-1. *. (fst obtuse_point1) +. 2. *. center,
+                               -1. *. (snd obtuse_point1) +. 2. *. center); 
+                              (-1. *. (fst point2) +. 2. *. center,
+                               -1. *. (snd point2) +. 2. *. center)|]]
         
       end
     done;
