@@ -23,7 +23,7 @@ let pi = 4. *. atan (1.);;
 (* ===Variables that can be changed.=== *)
 let wait_each_triangle = false;;
     (* Sleep between each triangle drawing. *)
-let nb_generations = 6;;
+let nb_generations = 5;;
 let show_each_generation = true;;
     (* Sleep between each generation. *)
 let robinson_single_triangle = false;;
