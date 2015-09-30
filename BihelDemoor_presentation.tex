@@ -43,16 +43,46 @@
 	\subsection{Basic features}
 	\begin{frame}
 		\frametitle{Penrose tiling, basic features}
+		Recursive division of a single Robinson triangle.
+		
+		
 		\begin{itemize}
-			\item Recursive division of Robinson triangles.
+			\item Triangles are arrays of 3 points ;
+			\item order of the points :
+				\vspace{-0.4cm}\\
+				\hspace{4cm}
+				\includegraphics[scale=0.25]{naming_triangles.png}
+			\item coordinates of points are floats and converted to int only for drawing.
 		\end{itemize}
 	\end{frame}
 	
-	\subsection{Advenced features}
+	\subsection{Wheel of triangles}
 	\begin{frame}
-		\frametitle{Advanced features}
+		\frametitle{Wheel of triangles}
+		\begin{columns}[T]
+			\begin{column}{.43\textwidth}
+				\hspace{-2cm}
+				\vspace{-0.7cm}
+				\begin{figure}[H]
+					\caption{A wheel of 10 acute triangles}	\includegraphics[height=0.65\textheight]{screenshot_wheel.png}
+				\end{figure}
+				\hspace*{\fill}
+			\end{column}
+			\begin{column}{.57\textwidth}
+				\begin{itemize}
+					\item For acute triangles, just convert second and third point;
+					\item for obtuse (a star instead of a wheel), start from an acute triangle and reduce one side.
+				\end{itemize}
+			\end{column}
+		\end{columns}
+	\end{frame}
+	
+	\subsection{Homothetic transformation}
+	\begin{frame}
+		\frametitle{Homothetic transformation}
 		\begin{itemize}
-			\item Wheel of triangles.
+			\item Fastest implementation ;
+			\item before dividing a triangle, enlarge it (multiply by $\varphi$).
 		\end{itemize}
 	\end{frame}
 	
